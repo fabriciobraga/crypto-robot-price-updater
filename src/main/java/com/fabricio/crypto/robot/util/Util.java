@@ -221,4 +221,17 @@ public class Util {
 		}
 		return null;
 	}
+	
+	public static Date subtrairMinutos(Date d, int horas) {
+		
+		try {
+			
+			return DateUtils.addMinutes(d, -horas);
+			
+		}catch(Exception e) {
+			System.out.println("problema ao subtrair " + horas + " da data: " + d);
+			System.out.println(e.toString());
+		}
+		return null;
+	}
 }

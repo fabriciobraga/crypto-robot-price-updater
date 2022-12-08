@@ -27,6 +27,10 @@ public class AssetService extends BaseService{
 
 	private final Logger logger = LoggerFactory.getLogger(AssetService.class);
 	
+	/**
+	 * Returns all symbols that we have in our API and in Binance as well. 
+	 * 
+	 */
 	public List<String> getAllSymbols() {
 		
 		try {

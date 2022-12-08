@@ -8,4 +8,12 @@ public class BaseService {
 
 	@Value("${api.key.glassnode}")
 	protected String apiKeyGlassnode;
+	
+	public void sleep(long miliseconds) {
+		try {
+			Thread.sleep(miliseconds);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 }

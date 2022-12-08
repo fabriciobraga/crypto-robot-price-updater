@@ -13,6 +13,7 @@ import com.fabricio.crypto.robot.api.glassnode.model.OHLCResponse;
 import com.fabricio.crypto.robot.feign.client.GlassNodeClient;
 import com.fabricio.crypto.robot.model.Ohlc;
 import com.fabricio.crypto.robot.model.OhlcId;
+import com.fabricio.crypto.robot.repository.MyWorkSymbolRepository;
 import com.fabricio.crypto.robot.repository.OhlcRepository;
 import com.fabricio.crypto.robot.util.Constants;
 import com.fabricio.crypto.robot.util.Util;
@@ -27,11 +28,14 @@ import feign.slf4j.Slf4jLogger;
 public class OHLCPriceService extends BaseService{
 	
 	@Autowired
-	private OhlcRepository olOhlcRepository;
+	private OhlcRepository ohlcRepository;
 	
 	@Autowired
 	private AssetService assetService;
 
+	@Autowired
+	private MyWorkSymbolRepository myWorkSymbolRepository;
+	
 	private final Logger logger = LoggerFactory.getLogger(OHLCPriceService.class);
 	
 	@Async
@@ -39,7 +43,6 @@ public class OHLCPriceService extends BaseService{
 		
 		try {
 			
-			logger.info("Updating price...");
 			int candelsUpdated = 0;
 			GlassNodeClient feignClient = Feign.builder()
 					.client(new OkHttpClient())
@@ -50,19 +53,23 @@ public class OHLCPriceService extends BaseService{
 			
 			for(String symbol : assetService.getAllSymbols()) {
 				
-				List<OHLCResponse> ohlcList = feignClient.getCandles(symbol.toUpperCase(), (Util.subtrairHoras(new Date(), 6).getTime()/1000), (new Date().getTime()/1000), Constants.GLASSNODE_CANDLESTICK_INTERVAL_1H, apiKeyGlassnode);
+				List<OHLCResponse> ohlcList = feignClient.getCandles(symbol.toUpperCase(), (Util.subtrairHoras(new Date(), 20).getTime()/1000), (new Date().getTime()/1000), Constants.GLASSNODE_CANDLESTICK_INTERVAL_1H, apiKeyGlassnode);
 				for(OHLCResponse ohlc : ohlcList) {
 					logger.debug("Time : {}", Util.formatterDateAndHour.format(new Date(ohlc.getT()*1000)));
 					logger.debug("Open Price : {}", ohlc.getO().getO());
 					logger.debug("-----------------");
 					
-					if(!olOhlcRepository.findById(new OhlcId(new Date(ohlc.getT()*1000), symbol, Constants.GLASSNODE_CANDLESTICK_INTERVAL_1H)).isPresent()) {
-						olOhlcRepository.save(new Ohlc(ohlc, symbol.toUpperCase(), Constants.CANDLE_INTERVAL_1H));
+					if(!ohlcRepository.findById(new OhlcId(new Date(ohlc.getT()*1000), symbol, Constants.CANDLE_INTERVAL_1H)).isPresent()) {
+						ohlcRepository.save(new Ohlc(ohlc, symbol.toUpperCase(), Constants.CANDLE_INTERVAL_1H));
 						candelsUpdated++;
 					}
 				}
+				sleep(10000);
 			}
-			logger.info("{} candles updated", candelsUpdated);
+			if(candelsUpdated > 0) {
+				logger.info("Updating price...");
+				logger.info("{} candles updated", candelsUpdated);
+			}
 			
 			
 		}catch (Exception e) {
