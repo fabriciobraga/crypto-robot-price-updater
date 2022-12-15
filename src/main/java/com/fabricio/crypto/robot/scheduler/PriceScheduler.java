@@ -1,4 +1,4 @@
-package com.fabricio.crypto.robot;
+package com.fabricio.crypto.robot.scheduler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
